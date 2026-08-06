@@ -17,7 +17,9 @@ export async function signIn(
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    return { error: "Incorrect email or password." };
+    return {
+      error: `DEBUG[${process.env.NEXT_PUBLIC_SUPABASE_URL}]: ${error.message} (status ${error.status})`,
+    };
   }
 
   redirect(next || "/dashboard");
