@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState } from "react";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Lock, Plus } from "lucide-react";
 
 import { createBudget, type ActionState } from "@/app/dashboard/budget/actions";
 import { Button } from "@/components/ui/button";
@@ -27,9 +28,20 @@ function lastDayOfMonth() {
   return new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().slice(0, 10);
 }
 
-export function CreateBudgetDialog() {
+export function CreateBudgetDialog({ atLimit = false }: { atLimit?: boolean }) {
   const [open, setOpen] = useState(false);
   const [state, formAction, isPending] = useActionState(createBudget, initialState);
+
+  if (atLimit) {
+    return (
+      <Button variant="outline" className="gap-1.5" asChild>
+        <Link href="/pricing">
+          <Lock className="size-4" />
+          Upgrade for More Budgets
+        </Link>
+      </Button>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

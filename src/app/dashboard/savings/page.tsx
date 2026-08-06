@@ -1,7 +1,7 @@
 import { PiggyBank } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
-import { getIsPremium } from "@/lib/premium";
+import { getIsPremium, FREE_LIMITS } from "@/lib/premium";
 import { StatCard } from "@/components/dashboard/shared/stat-card";
 import { CreateGoalDialog } from "@/components/dashboard/savings/create-goal-dialog";
 import { GoalCard } from "@/components/dashboard/savings/goal-card";
@@ -31,6 +31,7 @@ export default async function SavingsPage() {
   const goals = (data ?? []) as SavingsGoal[];
   const contributionList = (contributions ?? []) as SavingsContribution[];
   const isPremium = await getIsPremium(supabase, user!.id);
+  const atGoalLimit = !isPremium && goals.length >= FREE_LIMITS.savingsGoals;
   const goalNameById = new Map(goals.map((g) => [g.id, g.name]));
 
   const totalSaved = goals.reduce((sum, g) => sum + Number(g.current_amount), 0);
@@ -60,7 +61,7 @@ export default async function SavingsPage() {
               amount: c.amount,
             }))}
           />
-          <CreateGoalDialog />
+          <CreateGoalDialog atLimit={atGoalLimit} />
         </div>
       </div>
 

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Layers } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
-import { getIsPremium } from "@/lib/premium";
+import { getIsPremium, FREE_LIMITS } from "@/lib/premium";
 import { Card } from "@/components/ui/card";
 import { AddCategoryDialog } from "@/components/dashboard/budget/add-category-dialog";
 import { CategoryCard } from "@/components/dashboard/budget/category-card";
@@ -50,6 +50,7 @@ export default async function BudgetDetailPage({
   const expenseList = (expenses ?? []) as Expense[];
   const typedBudget = budget as Budget;
   const isPremium = await getIsPremium(supabase, user!.id);
+  const atCategoryLimit = !isPremium && categoryList.length >= FREE_LIMITS.categoriesPerBudget;
 
   const categoryNameById = new Map(categoryList.map((c) => [c.id, c.name]));
   const totalSpent = expenseList.reduce((sum, e) => sum + Number(e.amount), 0);
@@ -96,7 +97,7 @@ export default async function BudgetDetailPage({
                 amount: e.amount,
               }))}
             />
-            <AddCategoryDialog budgetId={id} />
+            <AddCategoryDialog budgetId={id} atLimit={atCategoryLimit} />
             <DeleteBudgetButton budgetId={id} />
           </div>
         </div>

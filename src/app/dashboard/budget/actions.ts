@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getIsPremium, FREE_LIMITS } from "@/lib/premium";
 
 export type ActionState = { error: string | null };
 
@@ -23,6 +24,19 @@ export async function createBudget(
 
   if (!name || !periodStart || !periodEnd || !Number.isFinite(totalAmount) || totalAmount < 0) {
     return { error: "Please fill in all fields correctly." };
+  }
+
+  const isPremium = await getIsPremium(supabase, user.id);
+  if (!isPremium) {
+    const { count } = await supabase
+      .from("budgets")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id);
+    if ((count ?? 0) >= FREE_LIMITS.budgets) {
+      return {
+        error: `Free plan is limited to ${FREE_LIMITS.budgets} budget. Upgrade to premium for unlimited budgets.`,
+      };
+    }
   }
 
   const { data, error } = await supabase
@@ -66,6 +80,19 @@ export async function addCategory(
 
   if (!name || !Number.isFinite(allocatedAmount) || allocatedAmount < 0) {
     return { error: "Please fill in all fields correctly." };
+  }
+
+  const isPremium = await getIsPremium(supabase, user.id);
+  if (!isPremium) {
+    const { count } = await supabase
+      .from("budget_categories")
+      .select("id", { count: "exact", head: true })
+      .eq("budget_id", budgetId);
+    if ((count ?? 0) >= FREE_LIMITS.categoriesPerBudget) {
+      return {
+        error: `Free plan is limited to ${FREE_LIMITS.categoriesPerBudget} categories per budget. Upgrade to premium for unlimited categories.`,
+      };
+    }
   }
 
   const { error } = await supabase.from("budget_categories").insert({

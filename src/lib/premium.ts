@@ -1,5 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+export const FREE_LIMITS = {
+  savingsGoals: 1,
+  budgets: 1,
+  categoriesPerBudget: 5,
+} as const;
+
 export async function getIsPremium(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: SupabaseClient<any>,

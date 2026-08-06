@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { getIsPremium, FREE_LIMITS } from "@/lib/premium";
 
 export type ActionState = { error: string | null };
 
@@ -21,6 +22,19 @@ export async function createGoal(
 
   if (!name || !Number.isFinite(targetAmount) || targetAmount <= 0) {
     return { error: "Please fill in all fields correctly." };
+  }
+
+  const isPremium = await getIsPremium(supabase, user.id);
+  if (!isPremium) {
+    const { count } = await supabase
+      .from("savings_goals")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id);
+    if ((count ?? 0) >= FREE_LIMITS.savingsGoals) {
+      return {
+        error: `Free plan is limited to ${FREE_LIMITS.savingsGoals} savings goal. Upgrade to premium for unlimited goals.`,
+      };
+    }
   }
 
   const { error } = await supabase.from("savings_goals").insert({

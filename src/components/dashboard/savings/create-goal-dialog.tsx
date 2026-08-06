@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState } from "react";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Lock, Plus } from "lucide-react";
 
 import { createGoal, type ActionState } from "@/app/dashboard/savings/actions";
 import { useCloseOnSuccess } from "@/hooks/use-close-on-success";
@@ -18,11 +19,22 @@ import {
 
 const initialState: ActionState = { error: null };
 
-export function CreateGoalDialog() {
+export function CreateGoalDialog({ atLimit = false }: { atLimit?: boolean }) {
   const [open, setOpen] = useState(false);
   const [state, formAction, isPending] = useActionState(createGoal, initialState);
 
   useCloseOnSuccess(isPending, !!state.error, () => setOpen(false));
+
+  if (atLimit) {
+    return (
+      <Button variant="outline" className="gap-1.5" asChild>
+        <Link href="/pricing">
+          <Lock className="size-4" />
+          Upgrade for More Goals
+        </Link>
+      </Button>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

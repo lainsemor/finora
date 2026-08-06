@@ -1,6 +1,7 @@
 import { Wallet2 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
+import { getIsPremium, FREE_LIMITS } from "@/lib/premium";
 import { CreateBudgetDialog } from "@/components/dashboard/budget/create-budget-dialog";
 import { BudgetCard } from "@/components/dashboard/budget/budget-card";
 import { EmptyState } from "@/components/dashboard/shared/empty-state";
@@ -25,6 +26,8 @@ export default async function BudgetPage() {
   const budgetList = (budgets ?? []) as Budget[];
   const categoryList = (categories ?? []) as BudgetCategory[];
   const expenseList = (expenses ?? []) as Expense[];
+  const isPremium = await getIsPremium(supabase, user!.id);
+  const atBudgetLimit = !isPremium && budgetList.length >= FREE_LIMITS.budgets;
 
   const spentByBudget = new Map<string, number>();
   for (const category of categoryList) {
@@ -46,7 +49,7 @@ export default async function BudgetPage() {
             Split your spending into categories and stay on budget.
           </p>
         </div>
-        <CreateBudgetDialog />
+        <CreateBudgetDialog atLimit={atBudgetLimit} />
       </div>
 
       {budgetList.length === 0 ? (
