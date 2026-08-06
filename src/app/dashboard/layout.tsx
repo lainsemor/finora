@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { generateRecurringIncomeOccurrences } from "@/lib/recurring-income";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 
@@ -27,6 +28,10 @@ export default async function DashboardLayout({
   const isPremium = ["active", "trialing"].includes(
     profile?.subscription_status ?? "free"
   );
+
+  if (isPremium) {
+    await generateRecurringIncomeOccurrences(supabase, user.id);
+  }
 
   return (
     <div className="flex min-h-svh">

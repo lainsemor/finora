@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useActionState, useState } from "react";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Pencil } from "lucide-react";
 
-import { addIncome, type ActionState } from "@/app/dashboard/income/actions";
+import { updateIncome, type ActionState } from "@/app/dashboard/income/actions";
 import { useCloseOnSuccess } from "@/hooks/use-close-on-success";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,72 +23,82 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import type { Income } from "@/lib/types";
 
 const initialState: ActionState = { error: null };
 
-export function AddIncomeDialog({ isPremium = true }: { isPremium?: boolean }) {
+export function EditIncomeDialog({ income }: { income: Income }) {
   const [open, setOpen] = useState(false);
-  const [isRecurring, setIsRecurring] = useState(false);
-  const [state, formAction, isPending] = useActionState(addIncome, initialState);
+  const [isRecurring, setIsRecurring] = useState(income.is_recurring);
+  const boundAction = updateIncome.bind(null, income.id);
+  const [state, formAction, isPending] = useActionState(boundAction, initialState);
 
-  useCloseOnSuccess(isPending, !!state.error, () => {
-    setOpen(false);
-    setIsRecurring(false);
-  });
+  useCloseOnSuccess(isPending, !!state.error, () => setOpen(false));
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-1.5">
-          <Plus className="size-4" />
-          Add Income
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label="Edit income"
+          className="size-8 text-muted-foreground hover:text-foreground"
+        >
+          <Pencil className="size-4" />
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add new income</DialogTitle>
+          <DialogTitle>Edit income</DialogTitle>
         </DialogHeader>
 
         <form action={formAction} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="source">Source</Label>
-            <Input id="source" name="source" placeholder="Salary, freelance, etc." required />
+            <Label htmlFor="edit-source">Source</Label>
+            <Input
+              id="edit-source"
+              name="source"
+              defaultValue={income.source}
+              placeholder="Salary, freelance, etc."
+              required
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="amount">Amount ($)</Label>
+              <Label htmlFor="edit-amount">Amount ($)</Label>
               <Input
-                id="amount"
+                id="edit-amount"
                 name="amount"
                 type="number"
                 step="0.01"
                 min="0"
                 required
-                placeholder="0.00"
+                defaultValue={income.amount}
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="date">Date</Label>
+              <Label htmlFor="edit-date">Date</Label>
               <Input
-                id="date"
+                id="edit-date"
                 name="date"
                 type="date"
                 required
-                defaultValue={new Date().toISOString().slice(0, 10)}
+                defaultValue={income.date}
               />
             </div>
           </div>
 
           <div className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2.5">
             <div className="flex flex-col gap-0.5">
-              <Label htmlFor="isRecurring">Recurring income</Label>
+              <Label htmlFor="edit-isRecurring">Recurring income</Label>
               <p className="text-xs text-muted-foreground">
                 Income that repeats on a regular interval
               </p>
             </div>
             <Switch
-              id="isRecurring"
+              id="edit-isRecurring"
               name="isRecurring"
               checked={isRecurring}
               onCheckedChange={setIsRecurring}
@@ -98,9 +107,12 @@ export function AddIncomeDialog({ isPremium = true }: { isPremium?: boolean }) {
 
           {isRecurring && (
             <div className="flex flex-col gap-2">
-              <Label htmlFor="recurrenceInterval">Repeat interval</Label>
-              <Select name="recurrenceInterval" defaultValue="monthly">
-                <SelectTrigger id="recurrenceInterval" className="w-full">
+              <Label htmlFor="edit-recurrenceInterval">Repeat interval</Label>
+              <Select
+                name="recurrenceInterval"
+                defaultValue={income.recurrence_interval ?? "monthly"}
+              >
+                <SelectTrigger id="edit-recurrenceInterval" className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -109,15 +121,6 @@ export function AddIncomeDialog({ isPremium = true }: { isPremium?: boolean }) {
                   <SelectItem value="monthly">Monthly</SelectItem>
                 </SelectContent>
               </Select>
-              {!isPremium && (
-                <p className="text-xs text-muted-foreground">
-                  Free plan logs this entry once.{" "}
-                  <Link href="/pricing" className="text-primary hover:underline">
-                    Upgrade to premium
-                  </Link>{" "}
-                  to auto-generate future occurrences.
-                </p>
-              )}
             </div>
           )}
 

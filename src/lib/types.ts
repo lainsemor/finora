@@ -6,6 +6,7 @@ export type Income = {
   date: string;
   is_recurring: boolean;
   recurrence_interval: "weekly" | "biweekly" | "monthly" | null;
+  recurring_parent_id: string | null;
   created_at: string;
 };
 

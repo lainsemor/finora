@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { DeleteIconButton } from "@/components/dashboard/shared/delete-icon-button";
 import { AddContributionDialog } from "@/components/dashboard/savings/add-contribution-dialog";
+import { EditGoalDialog } from "@/components/dashboard/savings/edit-goal-dialog";
 import { deleteGoal } from "@/app/dashboard/savings/actions";
 import { formatCurrency, formatDate } from "@/lib/format";
 import type { SavingsGoal } from "@/lib/types";
@@ -27,7 +28,10 @@ export function GoalCard({ goal }: { goal: SavingsGoal }) {
             </p>
           )}
         </div>
-        <DeleteIconButton label="Delete goal" action={deleteGoal.bind(null, goal.id)} />
+        <div className="flex items-center gap-0.5">
+          <EditGoalDialog goal={goal} />
+          <DeleteIconButton label="Delete goal" action={deleteGoal.bind(null, goal.id)} />
+        </div>
       </div>
 
       <div className="flex flex-col gap-1.5">

@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { DeleteIconButton } from "@/components/dashboard/shared/delete-icon-button";
 import { EmptyState } from "@/components/dashboard/shared/empty-state";
 import { AddIncomeDialog } from "@/components/dashboard/income/add-income-dialog";
+import { EditIncomeDialog } from "@/components/dashboard/income/edit-income-dialog";
 import { deleteIncome } from "@/app/dashboard/income/actions";
 import { formatCurrency, formatDate } from "@/lib/format";
 import type { Income } from "@/lib/types";
@@ -42,7 +43,7 @@ export function IncomeTable({ incomes }: { incomes: Income[] }) {
           <TableHead>Date</TableHead>
           <TableHead>Repeat</TableHead>
           <TableHead className="text-right">Amount</TableHead>
-          <TableHead className="w-10" />
+          <TableHead className="w-20" />
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -53,7 +54,12 @@ export function IncomeTable({ incomes }: { incomes: Income[] }) {
               {formatDate(income.date)}
             </TableCell>
             <TableCell>
-              {income.is_recurring ? (
+              {income.recurring_parent_id ? (
+                <Badge variant="secondary" className="gap-1">
+                  <Repeat className="size-3" />
+                  Auto
+                </Badge>
+              ) : income.is_recurring ? (
                 <Badge variant="secondary" className="gap-1">
                   <Repeat className="size-3" />
                   {intervalLabel[income.recurrence_interval ?? "monthly"]}
@@ -66,10 +72,13 @@ export function IncomeTable({ incomes }: { incomes: Income[] }) {
               {formatCurrency(income.amount)}
             </TableCell>
             <TableCell>
-              <DeleteIconButton
-                label="Delete income"
-                action={deleteIncome.bind(null, income.id)}
-              />
+              <div className="flex items-center justify-end gap-0.5">
+                <EditIncomeDialog income={income} />
+                <DeleteIconButton
+                  label="Delete income"
+                  action={deleteIncome.bind(null, income.id)}
+                />
+              </div>
             </TableCell>
           </TableRow>
         ))}

@@ -1,12 +1,14 @@
 import { PiggyBank } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
+import { getIsPremium } from "@/lib/premium";
 import { StatCard } from "@/components/dashboard/shared/stat-card";
 import { CreateGoalDialog } from "@/components/dashboard/savings/create-goal-dialog";
 import { GoalCard } from "@/components/dashboard/savings/goal-card";
 import { EmptyState } from "@/components/dashboard/shared/empty-state";
-import { formatCurrency } from "@/lib/format";
-import type { SavingsGoal } from "@/lib/types";
+import { ExportCsvButton } from "@/components/dashboard/shared/export-csv-button";
+import { formatCurrency, formatDate } from "@/lib/format";
+import type { SavingsGoal, SavingsContribution } from "@/lib/types";
 
 export default async function SavingsPage() {
   const supabase = await createClient();
@@ -14,13 +16,23 @@ export default async function SavingsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data } = await supabase
-    .from("savings_goals")
-    .select("*")
-    .eq("user_id", user!.id)
-    .order("created_at", { ascending: false });
+  const [{ data }, { data: contributions }] = await Promise.all([
+    supabase
+      .from("savings_goals")
+      .select("*")
+      .eq("user_id", user!.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("savings_contributions")
+      .select("*, savings_goals!inner(user_id)")
+      .eq("savings_goals.user_id", user!.id),
+  ]);
 
   const goals = (data ?? []) as SavingsGoal[];
+  const contributionList = (contributions ?? []) as SavingsContribution[];
+  const isPremium = await getIsPremium(supabase, user!.id);
+  const goalNameById = new Map(goals.map((g) => [g.id, g.name]));
+
   const totalSaved = goals.reduce((sum, g) => sum + Number(g.current_amount), 0);
   const totalTarget = goals.reduce((sum, g) => sum + Number(g.target_amount), 0);
 
@@ -33,7 +45,23 @@ export default async function SavingsPage() {
             Set a target amount and date for your goals, and track your progress.
           </p>
         </div>
-        <CreateGoalDialog />
+        <div className="flex items-center gap-2">
+          <ExportCsvButton
+            filename="savings-contributions.csv"
+            isPremium={isPremium}
+            columns={[
+              { key: "goal", label: "Goal" },
+              { key: "date", label: "Date" },
+              { key: "amount", label: "Amount" },
+            ]}
+            data={contributionList.map((c) => ({
+              goal: goalNameById.get(c.goal_id) ?? "",
+              date: formatDate(c.date),
+              amount: c.amount,
+            }))}
+          />
+          <CreateGoalDialog />
+        </div>
       </div>
 
       {goals.length > 0 && (

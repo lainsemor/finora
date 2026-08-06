@@ -3,12 +3,14 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Layers } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
+import { getIsPremium } from "@/lib/premium";
 import { Card } from "@/components/ui/card";
 import { AddCategoryDialog } from "@/components/dashboard/budget/add-category-dialog";
 import { CategoryCard } from "@/components/dashboard/budget/category-card";
 import { BudgetDonutChart } from "@/components/dashboard/budget/budget-donut-chart";
 import { DeleteBudgetButton } from "@/components/dashboard/budget/delete-budget-button";
 import { EmptyState } from "@/components/dashboard/shared/empty-state";
+import { ExportCsvButton } from "@/components/dashboard/shared/export-csv-button";
 import { formatCurrency, formatDate } from "@/lib/format";
 import type { Budget, BudgetCategory, Expense } from "@/lib/types";
 
@@ -47,7 +49,9 @@ export default async function BudgetDetailPage({
   const categoryList = (categories ?? []) as BudgetCategory[];
   const expenseList = (expenses ?? []) as Expense[];
   const typedBudget = budget as Budget;
+  const isPremium = await getIsPremium(supabase, user!.id);
 
+  const categoryNameById = new Map(categoryList.map((c) => [c.id, c.name]));
   const totalSpent = expenseList.reduce((sum, e) => sum + Number(e.amount), 0);
 
   const chartData = categoryList.map((c) => ({
@@ -76,6 +80,22 @@ export default async function BudgetDetailPage({
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <ExportCsvButton
+              filename={`${typedBudget.name}-expenses.csv`}
+              isPremium={isPremium}
+              columns={[
+                { key: "category", label: "Category" },
+                { key: "description", label: "Description" },
+                { key: "date", label: "Date" },
+                { key: "amount", label: "Amount" },
+              ]}
+              data={expenseList.map((e) => ({
+                category: categoryNameById.get(e.budget_category_id) ?? "",
+                description: e.description ?? "",
+                date: formatDate(e.date),
+                amount: e.amount,
+              }))}
+            />
             <AddCategoryDialog budgetId={id} />
             <DeleteBudgetButton budgetId={id} />
           </div>

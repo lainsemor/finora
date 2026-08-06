@@ -75,3 +75,34 @@ export async function addContribution(
   revalidatePath("/dashboard");
   return { error: null };
 }
+
+export async function updateGoal(
+  id: string,
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated." };
+
+  const name = String(formData.get("name") ?? "").trim();
+  const targetAmount = Number(formData.get("targetAmount"));
+  const targetDate = String(formData.get("targetDate") ?? "") || null;
+
+  if (!name || !Number.isFinite(targetAmount) || targetAmount <= 0) {
+    return { error: "Please fill in all fields correctly." };
+  }
+
+  const { error } = await supabase
+    .from("savings_goals")
+    .update({ name, target_amount: targetAmount, target_date: targetDate })
+    .eq("id", id);
+
+  if (error) return { error: "Could not update goal. Please try again." };
+
+  revalidatePath("/dashboard/savings");
+  revalidatePath("/dashboard");
+  return { error: null };
+}

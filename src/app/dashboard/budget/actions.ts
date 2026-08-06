@@ -128,3 +128,33 @@ export async function deleteExpense(budgetId: string, expenseId: string) {
   revalidatePath(`/dashboard/budget/${budgetId}`);
   revalidatePath("/dashboard");
 }
+
+export async function updateCategory(
+  budgetId: string,
+  categoryId: string,
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated." };
+
+  const name = String(formData.get("name") ?? "").trim();
+  const allocatedAmount = Number(formData.get("allocatedAmount"));
+
+  if (!name || !Number.isFinite(allocatedAmount) || allocatedAmount < 0) {
+    return { error: "Please fill in all fields correctly." };
+  }
+
+  const { error } = await supabase
+    .from("budget_categories")
+    .update({ name, allocated_amount: allocatedAmount })
+    .eq("id", categoryId);
+
+  if (error) return { error: "Could not update category. Please try again." };
+
+  revalidatePath(`/dashboard/budget/${budgetId}`);
+  return { error: null };
+}

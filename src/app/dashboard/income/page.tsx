@@ -1,12 +1,14 @@
 import { Repeat, TrendingUp, Wallet } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
+import { getIsPremium } from "@/lib/premium";
 import { Card } from "@/components/ui/card";
 import { StatCard } from "@/components/dashboard/shared/stat-card";
 import { AddIncomeDialog } from "@/components/dashboard/income/add-income-dialog";
 import { IncomeTable } from "@/components/dashboard/income/income-table";
 import { IncomeChart } from "@/components/dashboard/income/income-chart";
-import { formatCurrency } from "@/lib/format";
+import { ExportCsvButton } from "@/components/dashboard/shared/export-csv-button";
+import { formatCurrency, formatDate } from "@/lib/format";
 import type { Income } from "@/lib/types";
 
 const monthLabel = new Intl.DateTimeFormat("en-US", { month: "short" });
@@ -47,6 +49,7 @@ export default async function IncomePage() {
     .order("date", { ascending: false });
 
   const incomes = (data ?? []) as Income[];
+  const isPremium = await getIsPremium(supabase, user!.id);
 
   const now = new Date();
   const thisMonthTotal = incomes
@@ -66,7 +69,29 @@ export default async function IncomePage() {
           <h1 className="text-2xl font-semibold tracking-tight">Income</h1>
           <p className="text-muted-foreground">Track every income source in one place.</p>
         </div>
-        <AddIncomeDialog />
+        <div className="flex items-center gap-2">
+          <ExportCsvButton
+            filename="income.csv"
+            isPremium={isPremium}
+            columns={[
+              { key: "source", label: "Source" },
+              { key: "date", label: "Date" },
+              { key: "recurring", label: "Recurring" },
+              { key: "amount", label: "Amount" },
+            ]}
+            data={incomes.map((i) => ({
+              source: i.source,
+              date: formatDate(i.date),
+              recurring: i.recurring_parent_id
+                ? "Auto"
+                : i.is_recurring
+                  ? (i.recurrence_interval ?? "")
+                  : "One-time",
+              amount: i.amount,
+            }))}
+          />
+          <AddIncomeDialog isPremium={isPremium} />
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">

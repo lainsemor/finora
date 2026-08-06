@@ -1,6 +1,7 @@
 import { Progress } from "@/components/ui/progress";
 import { DeleteIconButton } from "@/components/dashboard/shared/delete-icon-button";
 import { AddExpenseDialog } from "@/components/dashboard/budget/add-expense-dialog";
+import { EditCategoryDialog } from "@/components/dashboard/budget/edit-category-dialog";
 import { deleteCategory, deleteExpense } from "@/app/dashboard/budget/actions";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -46,10 +47,13 @@ export function CategoryCard({
             indicatorClassName={overBudget ? "bg-status-critical" : undefined}
           />
         </div>
-        <DeleteIconButton
-          label="Delete category"
-          action={deleteCategory.bind(null, budgetId, category.id)}
-        />
+        <div className="flex items-center gap-0.5">
+          <EditCategoryDialog budgetId={budgetId} category={category} />
+          <DeleteIconButton
+            label="Delete category"
+            action={deleteCategory.bind(null, budgetId, category.id)}
+          />
+        </div>
       </div>
 
       {expenses.length > 0 && (
