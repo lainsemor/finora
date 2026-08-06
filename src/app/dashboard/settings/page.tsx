@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { EditNameForm } from "@/components/dashboard/settings/edit-name-form";
 import type { Profile } from "@/lib/types";
 
 const planLabel: Record<string, string> = {
@@ -40,7 +41,7 @@ export default async function SettingsPage() {
         <div className="flex flex-col gap-3 text-sm">
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Name</span>
-            <span className="font-medium">{typedProfile?.display_name || "—"}</span>
+            <EditNameForm initialName={typedProfile?.display_name ?? ""} />
           </div>
           <Separator />
           <div className="flex items-center justify-between">
