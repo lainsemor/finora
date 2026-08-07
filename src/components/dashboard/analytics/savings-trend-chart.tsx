@@ -12,7 +12,7 @@ import {
 
 import { formatCurrency } from "@/lib/format";
 
-export function IncomeChart({
+export function SavingsTrendChart({
   data,
 }: {
   data: { month: string; total: number }[];
@@ -37,14 +37,13 @@ export function IncomeChart({
             fontSize: 12,
             color: "var(--popover-foreground)",
           }}
-          formatter={(value) => [formatCurrency(Number(value)), "Income"]}
-          labelClassName="text-foreground"
+          formatter={(value) => [formatCurrency(Number(value)), "Contributed"]}
         />
         <Bar
           dataKey="total"
-          fill="var(--chart-1)"
+          fill="var(--chart-3)"
           radius={[4, 4, 0, 0]}
-          maxBarSize={40}
+          maxBarSize={28}
           isAnimationActive={false}
         />
       </BarChart>

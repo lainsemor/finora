@@ -7,6 +7,7 @@ import {
   TrendingUp,
   Wallet2,
   PiggyBank,
+  BarChart3,
   Settings,
   Wallet,
 } from "lucide-react";
@@ -18,6 +19,7 @@ const links = [
   { href: "/dashboard/income", label: "Income", icon: TrendingUp },
   { href: "/dashboard/budget", label: "Budget", icon: Wallet2 },
   { href: "/dashboard/savings", label: "Savings", icon: PiggyBank },
+  { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
